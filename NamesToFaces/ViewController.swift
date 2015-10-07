@@ -14,11 +14,15 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     @IBOutlet weak var collectionView: UICollectionView!
 
     var people = [Person]()
-    
+    let defaults = NSUserDefaults.standardUserDefaults()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "addNewPerson")
+        if let savedPeople = defaults.objectForKey("people") as? NSData {
+            people = NSKeyedUnarchiver.unarchiveObjectWithData(savedPeople) as! [Person]
+        }
+
     }
 
     func addNewPerson() {
@@ -38,6 +42,11 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
         let documentsDirectory = paths[0]
         return documentsDirectory
+    }
+
+    func save() {
+        let savedData = NSKeyedArchiver.archivedDataWithRootObject(people)
+        defaults.setObject(savedData, forKey: "people")
     }
 
     // MARK: - CollectionView DataSource
@@ -77,6 +86,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
                 let newName = ac2.textFields![0]
                 person.name = newName.text!
                 self.collectionView.reloadData()
+                self.save()
                 })
 
             self.presentViewController(ac2, animated: true, completion: nil)
@@ -116,6 +126,7 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         let person = Person(name: "Unkown", image: imageName)
         people.append(person)
         collectionView.reloadData()
+        save()
         dismissViewControllerAnimated(true, completion: nil)
     }
 
